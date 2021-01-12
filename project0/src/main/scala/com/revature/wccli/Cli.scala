@@ -19,21 +19,50 @@ import java.io.FileNotFoundException
     /**
       * Prints the commands avaible to the user
       */
+
+      def printWelcome(): Unit = {
+         println("Welcome to your journal")
+    }
+    
       def printOptions(): Unit = {
-          println("Commands available:")
-          println("exit: exits word count uli ")
-          println("echo [string to repeat] : repeats a string back to the user")
+          println("Previous Entries")
+          println("Make New Entry")
+          println("Edit Entry")
+          println("Delete Entry")
+          println("Exit")
       }
-      /**
-        * this runs the menu, this is the entrypoint to the cli class
-        * 
-        * the menu will interact with the user on a loop and call other methods classes in order to achieve the result of hte users commands
-        */
+
+      def printDeleteOptions(): Unit = {
+          println("Which entry would you like to delete?")
+      }
+      
+      def printPreviousEntries(): Unit = {
+        try{
+          println(FileUtil.getPreviousEntries())
+        } catch{
+              case fnfe: FileNotFoundException => {
+                println(s"Failed to find file: ${fnfe.getMessage}")
+                println(s"""Found top level files:
+                ${FileUtil.getTopLevelFiles.mkString(", ")}""")
+              }
+        }
+      }
+
+      def makeNewEntry(arg: String) = {
+      
+      }
+
+      def editEntry() = {
+
+      }
+
+      def deleteEntry(){
+
+      }
       def menu() : Unit = {
         printWelcome()
         var continueMenuLoop = true
         while (continueMenuLoop) {
-
         
           printOptions()
         
@@ -43,8 +72,17 @@ import java.io.FileNotFoundException
           // Heres an example using our regex above, feel free to just follow along with similar commands and args
           input match{
            
-            case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("echo") => {
-              println(arg)
+            case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("p") => {
+              printPreviousEntries()
+            }
+            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("make") => {
+
+            }
+            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("edit") => {
+
+            }
+            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("delete") => {
+              
             }
             case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("exit") => {
               continueMenuLoop = false
@@ -58,7 +96,7 @@ import java.io.FileNotFoundException
             }
           }
         }
-        println("Thank you for using word count cli, goodbye")
+        println("Thank you for using your journal app, goodbye")
       }
         
 

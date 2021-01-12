@@ -33,6 +33,18 @@ import java.io.File
             if (openedFile != null) openedFile.close()
         }
     }
+
+    def getPreviousEntries(sep: String = " "): String = {
+        var openedFile : BufferedSource = null // declare our openedfile var
+        try{
+            openedFile = Source.fromFile("entryOne.csv")
+            //Scala returns the last line of this try block, since there is nothing below the try-finally
+            openedFile.getLines().mkString(sep)
+        } finally{
+            //if the file was opened, close it
+            if (openedFile != null) openedFile.close()
+        }
+    }
     
     /**
       * 
