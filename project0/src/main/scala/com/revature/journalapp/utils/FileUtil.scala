@@ -34,17 +34,12 @@ import java.io.File
         }
     }
 
-    def getPreviousEntries(sep: String = " "): String = {
-        var openedFile : BufferedSource = null // declare our openedfile var
-        try{
-            openedFile = Source.fromFile("entryOne.csv")
-            //Scala returns the last line of this try block, since there is nothing below the try-finally
-            openedFile.getLines().mkString(sep)
-        } finally{
-            //if the file was opened, close it
-            if (openedFile != null) openedFile.close()
-        }
-    }
+    //val csv = io.Source.fromFile(filename)
+        //  for(line <- csv.getLines()){
+        //    val cols = line.split(",").map(_.trim)
+      //      cols(0)
+      //    }
+       //   csv.close()
     
     /**
       * 
@@ -54,14 +49,6 @@ import java.io.File
       */
     def getTopLevelFiles(): Array[String] = {
         val currentDir = new File(".")
-        //were going to filter the list of java.io.files, only including files that are files, not directories
-        // this will leave us with an array of java.io.files
-        //we then map that arrray, turning each java.io.file into a string
-        currentDir.listFiles()
-            .filter((f: File) => {f.isFile()})
-            .map((f: File) => {f.getName()})
-
-            //shorthand version of the above
-            // currentDir.listFiles().filter(_.isFile()).map(_.getName())
+        currentDir.listFiles().filter(_.isFile()).map(_.getName())
     }
   }

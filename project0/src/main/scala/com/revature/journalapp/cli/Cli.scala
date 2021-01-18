@@ -5,6 +5,8 @@ import scala.util.matching.Regex
 import java.io.FileNotFoundException
 import com.revature.journalapp.utils
 import com.revature.journalapp.dao.JournalDao
+import com.revature.journalapp.model.Journal
+import java.io.File
 
   class Cli {
     
@@ -17,21 +19,34 @@ import com.revature.journalapp.dao.JournalDao
     }
     
       def printOptions(): Unit = {
-          println("Previous Entries")
-          println("Make New Entry")
-          println("Edit Entry")
-          println("Delete Entry")
+          println("Previous Entries: p")
+          println("Make New Entry: n")
+          println("Edit Entry: e")
+          println("Delete Entry: d")
           println("Exit")
       }
       
       def printPreviousEntries(): Unit = {
         JournalDao.getAll().foreach(println)
       }
-      def makeNewEntry(arg: String) = {
-      
+      def makeNewEntry(): Unit  = {
+        println("Choose File to Upload")
+        val filename = StdIn.readLine();
+        if (new java.io.File(filename).isFile()){
+          
+        }
+        else{
+          println("File does not exist")
+          println(s"""Found top level files:
+              ${FileUtil.getTopLevelFiles.mkString(", ")}""")
+        }
       }
 
       def editEntry() = {
+
+      }
+      
+      def deleteEntry() = {
 
       }
 
@@ -43,20 +58,20 @@ import com.revature.journalapp.dao.JournalDao
           printOptions()
         
           val input = StdIn.readLine()
-          // Heres an example using our regex above, feel free to just follow along with similar commands and args
+          
           input match{
            
             case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("p") => {
               printPreviousEntries()
             }
-            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("make") => {
-
+            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("n") => {
+              makeNewEntry()
             }
-            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("edit") => {
-
+            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("e") => {
+              editEntry()
             }
-            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("delete") => {
-              
+            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("d") => {
+              deleteEntry()
             }
             case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("exit") => {
               continueMenuLoop = false

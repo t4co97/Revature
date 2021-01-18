@@ -13,15 +13,22 @@ object JournalDao {
     def getAll(): Seq[Journal] = {
     val conn = ConnectionUtil.getConnection();
     Using.Manager { use =>
-        val stmt = use(conn.prepareStatement("SELECT * FROM project0.journal"))
+        val stmt = use(conn.prepareStatement("SELECT * FROM project0.journal;"))
         stmt.execute()
         val rs = use(stmt.getResultSet())
-        // lets use an ArrayBuffer, we're adding one element at a time
         val allEntries: ArrayBuffer[Journal] = ArrayBuffer()
         while (rs.next()) {
             allEntries.addOne(Journal.fromResultSet(rs))
         }
         allEntries.toList
         }.get
+    }
+
+    def addEntry(): Unit = {//change to boolean
+        val conn = ConnectionUtil.getConnection();
+        Using.Manager {use=>
+        val stmt = use(conn.prepareStatement("INSERT INTO project0.journal VALUES (DEFAULT,?,?);"))
+       
+        }
     }
 }
