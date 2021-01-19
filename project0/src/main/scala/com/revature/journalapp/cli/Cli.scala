@@ -27,27 +27,106 @@ import java.io.File
       }
       
       def printPreviousEntries(): Unit = {
-        JournalDao.getAll().foreach(println)
+        val journal = JournalDao.getAll()
+        for(i <- 0 to (journal.length-1)){
+        println(s"Entry ID: ${journal(i).entryId}")
+        println(s"Entry Date: ${journal(i).entryDate}")
+        println(s"Entry: ${journal(i).entry}")
+        println()  
+        }
+       
+        
+       
+        
       }
+      
       def makeNewEntry(): Unit  = {
         println("Choose File to Upload")
+
         val filename = StdIn.readLine();
+
         if (new java.io.File(filename).isFile()){
-          
+          if(JournalDao.addEntry(FileUtil.getTextContent(filename))){
+            println("Added Entry")
+          }else{
+            println("Failed to Add Entry!")
+          }
         }
         else{
-          println("File does not exist")
+          println("FILE DOES NOT EXIST")
           println(s"""Found top level files:
               ${FileUtil.getTopLevelFiles.mkString(", ")}""")
         }
       }
 
-      def editEntry() = {
-
+      def editEntry(): Unit ={
+        JournalDao.getAll().foreach(println)
+        println("Choose Entry to Edit: Use entry id to choose")
+        val entryId = StdIn.readLine()
+        println("Change Date, Entry, or Both?")
+        
+        val input = StdIn.readLine()
+        input match{
+            case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("date") => {
+              editDate()
+            }
+            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("entry") => {
+              editOnlyEntry()
+            }
+            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("both") => {
+              editEverything()
+            }
+          }
       }
       
-      def deleteEntry() = {
+      def editDate(): Unit = {
 
+      }
+
+      def editOnlyEntry(): Unit = {
+
+      }
+
+      def editEverything(): Unit = {
+        println("Choose File to Replace Current Entry")
+
+        val filename = StdIn.readLine();
+
+        if (new java.io.File(filename).isFile()){
+          if(JournalDao.addEntry(FileUtil.getTextContent(filename))){
+            println("Added Entry")
+          }else{
+            println("Failed to Add Entry!")
+          }
+        }
+        else{
+          println("FILE DOES NOT EXIST")
+          println(s"""Found top level files:
+              ${FileUtil.getTopLevelFiles.mkString(", ")}""")
+        }
+      }
+
+      def deleteEntry():Unit = {
+        printPreviousEntries()
+        println("Choose Entry to Delete: Use entry id to choose")
+        var entryId: Int = 0
+        try{
+          entryId = StdIn.readLine().toInt
+          println(s"ARE YOU SURE YOU WANT TO DELETE ENTRY $entryId y or n")
+        if(StdIn.readLine.equalsIgnoreCase("y")){
+          if(JournalDao.delteEntry(entryId)){
+            println("Successfully Deleted")
+          }else{
+            println("Failed to Delete")
+          } 
+        }else {
+        
+        }
+        }catch{
+          case n: NumberFormatException =>
+          println("PLEASE USE ID NUMBER WHEN PICKING")
+        }    
+        
       }
 
       def menu() : Unit = {
