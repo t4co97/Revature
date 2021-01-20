@@ -7,148 +7,168 @@ import com.revature.journalapp.utils
 import com.revature.journalapp.dao.JournalDao
 import com.revature.journalapp.model.Journal
 import java.io.File
-import scala.collection.mutable.ArrayBuffer
 import java.sql.Date
 
   class Cli {
-    
+    var journal: Seq[Journal] = null
+    var entryId = 0
+    var eCaught = false
 
     val commandArgPattern : Regex = "(\\w+)\\s*(.*)".r
 
 
-      def printWelcome(): Unit = {
-         println("Welcome to Your Journal")
+    def printWelcome(): Unit = {
+        println()
+        println("Welcome to Your Journal")
+    }
+  
+    def printOptions(): Unit = {
+      println("Previous Entries: p")
+      println("Previous Entries Ordered by Date: o")
+      println("Search by ID: s")
+      println("Search by Date: sd")
+      println("Make New Entry: n")
+      println("Edit Entry: e")
+      println("Delete Entry: d")
+      println("Exit")
     }
     
-      def printOptions(): Unit = {
-          println("Previous Entries: p")
-          println("Previous Entries Ordered by Date: o")
-          println("Search by ID: s")
-          println("Search by Date: sd")
-          println("Make New Entry: n")
-          println("Edit Entry: e")
-          println("Delete Entry: d")
-          println("Exit")
-      }
-      
-      def printPreviousEntries(): Unit = {
-        val journal = JournalDao.getAll()
-        for(i <- 0 to (journal.length-1)){
+    def printPreviousEntries(orderedBy: Int): Unit = {
+      journal = JournalDao.getAll(orderedBy)
+      for(i <- 0 to (journal.length-1)){
+        println()
         println(s"Entry ID: ${journal(i).entryId}")
         println(s"Entry Date: ${journal(i).entryDate}")
         println(s"Entry: ${journal(i).entry}")
-        println()  
+        if(i == (journal.length-1)){
+          println()
         }
+      }
+    }
+
+    def searchID(): Unit = {
+      println()
+      println("Please Type ID Number")
+      eCaught = false
+      try{
+        entryId = StdIn.readLine().toInt
+      }catch{
+        case n: NumberFormatException =>
+        println()
+        println("PLEASE USE ID NUMBER WHEN SEARCHING")
+        println()
+        eCaught = true
+      }finally{
+        if(eCaught){
+          return
+        }
+        journal = JournalDao.search(entryId)
+        if(journal.isEmpty){
+          println()
+          println("NO ENTRY WITH THAT ID")
+          println()
+          return
+        }
+        for(i <- 0 to (journal.length-1)){
+          println()
+          println(s"Entry ID: ${journal(i).entryId}")
+          println(s"Entry Date: ${journal(i).entryDate}")
+          println(s"Entry: ${journal(i).entry}")
+          println()  
+        }
+      }
+    }
+
+    def searchDate(): Unit = {
+      var entryDate:Date = null
+      eCaught = false
+      println()
+      println("Please Type Date: Format(YYYY-MM-DD)")
+      try{
+        entryDate = java.sql.Date.valueOf(StdIn.readLine())
+      }catch{
+        case e: Exception =>
+        println()
+        println("PLEASE USE CORRECT DATE FORMAT")
+        println()
+        eCaught = true
+      }finally{
+        if(eCaught){
+          return
+        }
+        journal = JournalDao.search(entryDate)
+        if(journal.isEmpty){
+          println()
+          println("NO ENTRY WITH THAT DATE")
+          println()
+          return
+        }
+        for(i <- 0 to (journal.length-1)){
+          println()
+          println(s"Entry ID: ${journal(i).entryId}")
+          println(s"Entry Date: ${journal(i).entryDate}")
+          println(s"Entry: ${journal(i).entry}")
+          if(i == (journal.length-1)){
+          println()
+          }  
+        }
+      }
+    }
+    
+    def makeNewEntry(): Unit  = {
+      println()
+      println("Choose CSV File to Upload: Format(date,entry)")
+
+      val filename = StdIn.readLine();
+
+      if (new java.io.File(filename).isFile()){
+        if(!filename.contains(".csv")){
+          println()
+          println("FILE NOT A CSV")
+          println()
+          return
+        }
+        if(JournalDao.addEntry(FileUtil.getTextContent(filename))){
+          println()
+          println("Added Entry")
+          println()
+        }else{
+          println()
+          println("Failed to Add Entry!")
+          println()
+        }
+      }
+      else{
+        println()
+        println("FILE DOES NOT EXIST")
+        println(s"""Found Top Level Files:
+            ${FileUtil.getTopLevelFiles.mkString(", ")}""")
+        println()
+      }
+    }
+
+    def editEntry(): Unit ={
+      printPreviousEntries(0)
+      println("Choose Entry to Edit: USE ENTRY ID TO CHOOSE")
+      var entryData: (Int, Int, String, String) = null
+      var entryEdit: Int = 0
+      eCaught = false
+      try{
+        entryId = StdIn.readLine().toInt
+      }catch{
+        case n: NumberFormatException =>
+        println()
+        println("PLEASE USE ID NUMBER WHEN PICKING")
+        println()
+        eCaught = true
+      }finally{
+        if(eCaught){
+          return
+        }
+        var loop: Boolean = true
         
-      }
-
-      def entriesByDate(): Unit = {
-        val journal = JournalDao.getAllbyDate()
-        for(i <- 0 to (journal.length-1)){
-        println(s"Entry ID: ${journal(i).entryId}")
-        println(s"Entry Date: ${journal(i).entryDate}")
-        println(s"Entry: ${journal(i).entry}")
-        println()  
-        }
-      }
-
-      def searchID(): Unit = {
-        var entryId = 0
-        var eCaught = false
-
-        println("Please Type ID Number")
-         try{
-          entryId = StdIn.readLine().toInt
-        }catch{
-          case n: NumberFormatException =>
-          println("PLEASE USE ID NUMBER WHEN SEARCHING")
-          eCaught = true
-        }finally{
-          if(eCaught){
-            return
-          }
-          val journal = JournalDao.searchByID(entryId)
-          if(journal.isEmpty){
-            println("NO ENTRY WITH THAT ID")
-            return
-          }
-          for(i <- 0 to (journal.length-1)){
-          println(s"Entry ID: ${journal(i).entryId}")
-          println(s"Entry Date: ${journal(i).entryDate}")
-          println(s"Entry: ${journal(i).entry}")
-          println()  
-          }
-        }
-      }
-
-      def searchDate(): Unit = {
-        var entryDate: Date = null
-        var eCaught = false
-
-        println("Please Type Date: Format(YYYY-MM-DD)")
-         try{
-          entryDate = java.sql.Date.valueOf(StdIn.readLine())
-        }catch{
-          case e: Exception =>
-          println("PLEASE USE CORRECT DATE FORMAT")
-          eCaught = true
-        }finally{
-          if(eCaught){
-            return
-          }
-          val journal = JournalDao.searchByDate(entryDate)
-          if(journal.isEmpty){
-            println("NO ENTRY WITH THAT DATE")
-            return
-          }
-          for(i <- 0 to (journal.length-1)){
-          println(s"Entry ID: ${journal(i).entryId}")
-          println(s"Entry Date: ${journal(i).entryDate}")
-          println(s"Entry: ${journal(i).entry}")
-          println()  
-          }
-        }
-      }
-      
-      def makeNewEntry(): Unit  = {
-        println("Choose CSV File to Upload: Format(date,entry)")
-
-        val filename = StdIn.readLine();
-
-        if (new java.io.File(filename).isFile()){
-          if(JournalDao.addEntry(FileUtil.getTextContent(filename))){
-            println("Added Entry")
-          }else{
-            println("Failed to Add Entry!")
-          }
-        }
-        else{
-          println("FILE DOES NOT EXIST")
-          println(s"""Found Top Level Files:
-              ${FileUtil.getTopLevelFiles.mkString(", ")}""")
-        }
-      }
-
-      def editEntry(): Unit ={
-        printPreviousEntries()
-        println("Choose Entry to Edit: USE ENTRY ID TO CHOOSE")
-        var entryData: (Int, Int, String, String) = null
-        var eCaught: Boolean = false
-        var entryId:Int = 0
-        var entryEdit: Int = 0
-        try{
-          entryId = StdIn.readLine().toInt
-        }catch{
-          case n: NumberFormatException =>
-          println("PLEASE USE ID NUMBER WHEN PICKING")
-          eCaught = true
-        }finally{
-          if(eCaught){
-            return
-          }
-          var loop: Boolean = true
-          
-          while(loop){
+        while(loop){
+          println()
           println("Change Date, Entry, or Both? or Exit")
 
           
@@ -168,119 +188,132 @@ import java.sql.Date
             }
             case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("exit") => {
               return
+            }
+            case commandArgPattern(cmd, arg) => {
+            println()
+            println(s"""Failed to parse command: $cmd""")
             }  
             case _ => {
+              println()
               println("Failed to parse any input")
+              println()
             }
-         
-            }
-          }
           
-          println("Choose File to Replace Current Entry")
-
-                val filename = StdIn.readLine();
-
-                if (new java.io.File(filename).isFile()){
-                  var data = FileUtil.getTextContent(filename)
-                  entryData = (entryId, entryEdit, data(0), data(1))
-                  if(JournalDao.editEntry(entryData)){
-                    println("Updated Entry")
-                  }else{
-                    println("Failed to Update Entry!")
-                  }
-                }
-                else{
-                  println("FILE DOES NOT EXIST")
-                  println(s"""Found top level files:
-                      ${FileUtil.getTopLevelFiles.mkString(", ")}""")
-                }
-              
-
-          
-          }
-        
-      }
-      
-     
-
-      def deleteEntry():Unit = {
-        var entryId: Int = 0
-        var eCaught: Boolean = false
-
-        printPreviousEntries()
-        println("Choose Entry to Delete: Use entry id to choose")
-
-        try{
-          entryId = StdIn.readLine().toInt
-        }catch{
-          case n: NumberFormatException =>
-          println("PLEASE USE ID NUMBER WHEN PICKING")
-          eCaught =true
-        }finally{
-          if(eCaught){
-            return
-          }
-          println(s"ARE YOU SURE YOU WANT TO DELETE ENTRY $entryId y or n")
-          if(StdIn.readLine.equalsIgnoreCase("y")){
-            if(JournalDao.delteEntry(entryId)){
-              println("Successfully Deleted")
-            }else{
-              println("Failed to Delete")
-            } 
-          }else {
-          
-          }
-        }    
-        
-      }
-
-      def menu() : Unit = {
-        printWelcome()
-        var continueMenuLoop = true
-        while (continueMenuLoop) {
-        
-          printOptions()
-        
-          val input = StdIn.readLine()
-          
-          input match{
-           
-            case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("p") => {
-              printPreviousEntries()
-            }
-            case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("o") => {
-              entriesByDate()
-            }
-            case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("s") => {
-              searchID()
-            }
-            case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("sd") => {
-              searchDate()
-            }
-            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("n") => {
-              makeNewEntry()
-            }
-            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("e") => {
-              editEntry()
-            }
-            case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("d") => {
-              deleteEntry()
-            }
-            case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("exit") => {
-              continueMenuLoop = false
-            }
-           
-            case commandArgPattern(cmd, arg) => {
-              println(s"""Failed to parse command: "$cmd" with arguments: "$arg"""")
-            }
-            case _ => {
-              println("Failed to parse any input")
-            }
           }
         }
-        println("Thank you for using your journal app, goodbye")
-      }
-        
+        println("Choose File to Replace Current Entry")
+              val filename = StdIn.readLine();
+              if (new java.io.File(filename).isFile()){
+                if(!filename.contains(".csv")){
+                  println()
+                  println("FILE NOT A CSV")
+                  println()
+                  return
+                }
+                var data = FileUtil.getTextContent(filename)
+                entryData = (entryId, entryEdit, data(0), data(1))
+                if(JournalDao.editEntry(entryData)){
+                  println()
+                  println("Updated Entry")
+                  println()
+                }else{
+                  println()
+                  println("Failed to Update Entry!")
+                  println()
+                }
+              }
+              else{
+                println()
+                println("FILE DOES NOT EXIST")
+                println(s"""Found top level files:
+                    ${FileUtil.getTopLevelFiles.mkString(", ")}""")
+              }        
+        }   
+    }
+    
+    def deleteEntry():Unit = {
+      printPreviousEntries(0)
+      println("Choose Entry to Delete: Use entry id to choose")
+      eCaught = false
+      try{
+        entryId = StdIn.readLine().toInt
+      }catch{
+        case n: NumberFormatException =>
+        println()
+        println("PLEASE USE ID NUMBER WHEN PICKING")
+        println()
+        eCaught =true
+      }finally{
+        if(eCaught){
+          return
+        }
+        println()
+        println(s"ARE YOU SURE YOU WANT TO DELETE ENTRY $entryId y or n")
+        if(StdIn.readLine.equalsIgnoreCase("y")){
+          if(JournalDao.delteEntry(entryId)){
+            println()
+            println("Successfully Deleted")
+            println()
+          }else{
+            println()
+            println("Failed to Delete")
+            println()
+          } 
+        }else {
+          println()
+          println("Deletion Stopped")
+          println()
+          return
+        }
+      }     
+    }
 
+    def menu() : Unit = {
+      printWelcome()
+      var continueMenuLoop = true
+      while (continueMenuLoop) {
       
+        printOptions()
+      
+        val input = StdIn.readLine()
+        
+        input match{
+          case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("p") => {
+            printPreviousEntries(0)
+          }
+          case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("o") => {
+            printPreviousEntries(1)
+          }
+          case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("s") => {
+            searchID()
+          }
+          case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("sd") => {
+            searchDate()
+          }
+          case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("n") => {
+            makeNewEntry()
+          }
+          case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("e") => {
+            editEntry()
+          }
+          case commandArgPattern(cmd, arg) if cmd.equalsIgnoreCase("d") => {
+            deleteEntry()
+          }
+          case commandArgPattern(cmd, arg)if cmd.equalsIgnoreCase("exit") => {
+            continueMenuLoop = false
+          }
+          case commandArgPattern(cmd, arg) => {
+            println()
+            println(s"""Failed to parse command: $cmd"""")
+            println()
+          }
+          case _ => {
+            println()
+            println("Failed to parse any input")
+            println()
+          }
+        }
+      }
+      println("Thank you for using your journal app, goodbye")
+    }
   }
